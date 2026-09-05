@@ -147,19 +147,119 @@
                 <li>2026/09/05：サイトを開設しました。</li>
             </ul>
 
+            <!-- コメント（一言掲示板）エリア -->
             <div class="comment-section">
                 <p><b>■ 一言コメント</b></p>
 
-                <div id="cusdis_thread"
-                  data-host="https://cusdis.com"
-                  data-app-id="80f1809e-f1f0-4f74-93c5-9e3282c9dd35"
-                  data-page-id="index"
-                  data-page-url="https://2022j051-cloud.github.io/MIRAI-NISSHI/"
-                  data-page-title="学級日誌"
-                  data-lang="ja"
-                ></div>
-                <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
-            </div>
+                <!-- 入力フォーム -->
+                <div class="comment-form">
+        名前：<input type="text" id="cusdis-name" size="15" value="名無しさん"><br><br>
+        コメント：<br>
+        <input type="text" id="cusdis-msg" size="45">
+        <button type="button" onclick="submitCusdisComment()" class="comment-btn">送信</button>
+    </div>
+
+    <!-- コメント表示一覧 -->
+    <div class="comment-list" id="cusdis-comment-list">
+        <div class="comment-item">コメントを読み込み中...</div>
+    </div>
+</div>
+
+<script>
+    // Cusdisの設定情報（ご自身のものに書き換えてください）
+    const CUSDIS_CONFIG = {
+        appId: 'YOUR_APP_ID', // CusdisのApp ID
+        pageId: 'index',
+        pageUrl: 'https://<username>.github.io/<repository>/',
+        pageTitle: '学級日誌'
+    };
+
+    // 1. Cusdis APIからコメント一覧を取得して表示する関数
+    function loadCusdisComments() {
+        const listDiv = document.getElementById('cusdis-comment-list');
+        const url = `https://cusdis.com/api/open/comments?appId=${CUSDIS_CONFIG.appId}&pageId=${CUSDIS_CONFIG.pageId}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(resData => {
+                // Cusdisから返却されるコメント配列
+                const comments = resData.data || [];
+
+                if (comments.length === 0) {
+                    listDiv.innerHTML = '<div class="comment-item">まだコメントはありません。</div>';
+                    return;
+                }
+
+                let html = '';
+                comments.forEach((c, index) => {
+                    // 日付フォーマットの整形
+                    const d = new Date(c.createdAt);
+                    const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+                    html += `
+                        <div class="comment-item">
+                            <span class="comment-meta">${comments.length - index}. <b>${escapeHTML(c.nickname || '名無しさん')}</b> - ${dateStr}</span>
+                            <div>${escapeHTML(c.content)}</div>
+                        </div>
+                    `;
+                });
+                listDiv.innerHTML = html;
+            })
+            .catch(err => {
+                console.error('Cusdis読み込みエラー:', err);
+                listDiv.innerHTML = '<div class="comment-item">コメントの読み込みに失敗しました。</div>';
+            });
+    }
+
+    // 2. 自作フォームからCusdisへコメントを送信する関数
+    function submitCusdisComment() {
+        const nameInput = document.getElementById('cusdis-name');
+        const msgInput = document.getElementById('cusdis-msg');
+
+        if (!msgInput.value.trim()) {
+            alert('コメントを入力してください');
+            return;
+        }
+
+        const payload = {
+            appId: CUSDIS_CONFIG.appId,
+            pageId: CUSDIS_CONFIG.pageId,
+            pageUrl: CUSDIS_CONFIG.pageUrl,
+            pageTitle: CUSDIS_CONFIG.pageTitle,
+            nickname: nameInput.value || '名無しさん',
+            content: msgInput.value
+        };
+
+        fetch('https://cusdis.com/api/open/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (res.ok) {
+                alert('コメントを送信しました！（※承認後に反映されます）');
+                msgInput.value = '';
+                loadCusdisComments(); // 再読み込み
+            } else {
+                alert('送信に失敗しました。');
+            }
+        })
+        .catch(err => {
+            console.error('Cusdis送信エラー:', err);
+            alert('通信エラーが発生しました。');
+        });
+    }
+
+    // XSS対策（エスケープ処理）
+    function escapeHTML(str) {
+        return (str || '').replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
+    }
+
+    // ページ読み込み時に実行
+    window.onload = function() {
+        loadCusdisComments();
+    };
+</script>
 
         </div>
     </div>
