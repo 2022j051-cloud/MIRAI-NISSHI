@@ -206,15 +206,10 @@
 <script>
     // Cusdisの設定情報（環境に合わせて書き換えてください）
     const CUSDIS_CONFIG = {
-        <div id="cusdis_thread"
-          data-host="https://cusdis.com"
-          data-app-id="80f1809e-f1f0-4f74-93c5-9e3282c9dd35"
-          data-page-id="{{ tsuge }}"
-          data-page-url="{{ https://2022j051-cloud.github.io/MIRAI-NISSHI/ }}"
-          data-page-title="{{ 学級日誌の部屋 }}"
-          data-lang="ja"
-        ></div>
-        <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
+        appId: '80f1809e-f1f0-4f74-93c5-9e3282c9dd35', // CusdisダッシュボードのApp ID
+        pageId: 'index',
+        pageUrl: 'https://2022j051-cloud.github.io/MIRAI-NISSHI/',
+        pageTitle: '学級日誌'
     };
 
     // 1. Cusdis APIからコメント一覧を取得して描画
