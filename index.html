@@ -95,6 +95,41 @@
             border-top: 1px dotted #ccc;
             padding-top: 15px;
         }
+
+        .comment-form {
+            background-color: #f4f4f4;
+            border: 1px solid #cccccc;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        .comment-form input[type="text"],
+        .comment-form textarea {
+            font-size: 12px;
+            font-family: inherit;
+            border: 1px solid #999999;
+            padding: 2px 4px;
+        }
+
+        .comment-btn {
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .comment-list {
+            font-size: 12px;
+        }
+
+        .comment-item {
+            border-bottom: 1px dashed #e0e0e0;
+            padding: 6px 0;
+        }
+
+        .comment-meta {
+            color: #666666;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
@@ -151,30 +186,38 @@
             <div class="comment-section">
                 <p><b>■ 一言コメント</b></p>
 
-                <!-- 入力フォーム -->
+                <!-- コメント入力フォーム -->
                 <div class="comment-form">
-        名前：<input type="text" id="cusdis-name" size="15" value="名無しさん"><br><br>
-        コメント：<br>
-        <input type="text" id="cusdis-msg" size="45">
-        <button type="button" onclick="submitCusdisComment()" class="comment-btn">送信</button>
-    </div>
+                    名前：<input type="text" id="cusdis-name" size="15" value="名無しさん"><br><br>
+                    コメント：<br>
+                    <input type="text" id="cusdis-msg" size="45">
+                    <button type="button" onclick="submitCusdisComment()" class="comment-btn">送信</button>
+                </div>
 
-    <!-- コメント表示一覧 -->
-    <div class="comment-list" id="cusdis-comment-list">
-        <div class="comment-item">コメントを読み込み中...</div>
+                <!-- コメント表示一覧 -->
+                <div class="comment-list" id="cusdis-comment-list">
+                    <div class="comment-item">コメントを読み込み中...</div>
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
 
 <script>
-    // Cusdisの設定情報（ご自身のものに書き換えてください）
+    // Cusdisの設定情報（環境に合わせて書き換えてください）
     const CUSDIS_CONFIG = {
-        appId: 'YOUR_APP_ID', // CusdisのApp ID
-        pageId: 'index',
-        pageUrl: 'https://<username>.github.io/<repository>/',
-        pageTitle: '学級日誌'
+        <div id="cusdis_thread"
+          data-host="https://cusdis.com"
+          data-app-id="80f1809e-f1f0-4f74-93c5-9e3282c9dd35"
+          data-page-id="{{ tsuge }}"
+          data-page-url="{{ https://2022j051-cloud.github.io/MIRAI-NISSHI/ }}"
+          data-page-title="{{ 学級日誌の部屋 }}"
+          data-lang="ja"
+        ></div>
+        <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
     };
 
-    // 1. Cusdis APIからコメント一覧を取得して表示する関数
+    // 1. Cusdis APIからコメント一覧を取得して描画
     function loadCusdisComments() {
         const listDiv = document.getElementById('cusdis-comment-list');
         const url = `https://cusdis.com/api/open/comments?appId=${CUSDIS_CONFIG.appId}&pageId=${CUSDIS_CONFIG.pageId}`;
@@ -182,7 +225,6 @@
         fetch(url)
             .then(res => res.json())
             .then(resData => {
-                // Cusdisから返却されるコメント配列
                 const comments = resData.data || [];
 
                 if (comments.length === 0) {
@@ -192,7 +234,6 @@
 
                 let html = '';
                 comments.forEach((c, index) => {
-                    // 日付フォーマットの整形
                     const d = new Date(c.createdAt);
                     const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
@@ -211,7 +252,7 @@
             });
     }
 
-    // 2. 自作フォームからCusdisへコメントを送信する関数
+    // 2. 自作フォームからCusdisへ送信
     function submitCusdisComment() {
         const nameInput = document.getElementById('cusdis-name');
         const msgInput = document.getElementById('cusdis-msg');
@@ -237,9 +278,9 @@
         })
         .then(res => {
             if (res.ok) {
-                alert('コメントを送信しました！（※承認後に反映されます）');
+                alert('コメントを送信しました！（※管理者の承認後に表示されます）');
                 msgInput.value = '';
-                loadCusdisComments(); // 再読み込み
+                loadCusdisComments();
             } else {
                 alert('送信に失敗しました。');
             }
@@ -250,19 +291,16 @@
         });
     }
 
-    // XSS対策（エスケープ処理）
+    // XSS対策
     function escapeHTML(str) {
         return (str || '').replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
     }
 
-    // ページ読み込み時に実行
+    // 初回読み込み
     window.onload = function() {
         loadCusdisComments();
     };
 </script>
-
-        </div>
-    </div>
 
 </body>
 </html>
